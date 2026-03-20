@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Torre de Hanói — Jogo Educativo</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f1623;
+    --bg2: #161e2e;
+    --bg3: #1e293b;
+    --card: #1e2d42;
+    --card2: #243348;
+    --border: rgba(255,255,255,0.08);
+    --text: #e8f0fe;
+    --text2: #8ba4c8;
+    --text3: #4a6380;
+    --accent: #4f90f8;
+    --accent2: #2563eb;
+    --gold: #f5c842;
+    --gold2: #d4a30a;
+    --green: #22c55e;
+    --red: #ef4444;
+    --radius: 14px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+
+    --d1: #ef4444; --d2: #f97316; --d3: #eab308;
+    --d4: #22c55e; --d5: #3b82f6;
+  }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-image:
+      radial-gradient(ellipse 70% 50% at 20% 10%, rgba(79,144,248,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 80% 90%, rgba(245,200,66,0.06) 0%, transparent 60%);
+  }
+
+  /* ── HEADER ── */
+  header {
+    width: 100%; max-width: 960px;
+    padding: 2rem 1.5rem 0.5rem;
+    display: flex; align-items: center; gap: 1rem;
+    animation: fadeDown 0.6s ease both;
+  }
+  .logo {
+    width: 52px; height: 52px;
+    background: linear-gradient(135deg, #4f90f8, #1d4ed8);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; flex-shrink: 0;
+    box-shadow: 0 0 0 3px rgba(79,144,248,0.2);
+  }
+  header h1 {
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.9rem; font-weight: 800;
+    background: linear-gradient(135deg, #e8f0fe, #4f90f8);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  header p { font-size: 0.85rem; color: var(--text2); margin-top: 1px; }
+
+  /* ── MAIN ── */
+  main {
+    width: 100%; max-width: 960px;
+    padding: 1rem 1.5rem 3rem;
+    display: flex; flex-direction: column; gap: 1rem;
+  }
+
+  /* ── CONTROLS BAR ── */
+  .controls-bar {
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+    animation: fadeDown 0.6s 0.1s ease both;
+  }
+  .ctrl-group {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 8px 14px;
+  }
+  .ctrl-group label { font-size: 0.8rem; font-weight: 700; color: var(--text2); white-space: nowrap; }
+  select {
+    background: var(--bg3); color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 5px 10px; font-family: 'Nunito', sans-serif;
+    font-size: 0.9rem; font-weight: 700; cursor: pointer;
+    outline: none;
+  }
+  select:focus { border-color: var(--accent); }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 8px 18px; border-radius: var(--radius-sm);
+    font-family: 'Nunito', sans-serif; font-size: 0.88rem;
+    font-weight: 800; cursor: pointer; border: none;
+    transition: transform 0.12s, box-shadow 0.12s, opacity 0.2s;
+    white-space: nowrap;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 3px 12px rgba(79,144,248,0.35); }
+  .btn-primary:hover { box-shadow: 0 5px 18px rgba(79,144,248,0.45); }
+  .btn-ghost { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--card2); }
+  .btn-gold { background: var(--gold); color: #1a1200; box-shadow: 0 3px 12px rgba(245,200,66,0.3); }
+  .btn-gold:hover { box-shadow: 0 5px 18px rgba(245,200,66,0.4); }
+  .btn:disabled { opacity: 0.45; pointer-events: none; }
+  .speed-group { display: flex; align-items: center; gap: 8px; }
+  .speed-group label { font-size: 0.8rem; font-weight: 700; color: var(--text2); }
+  input[type="range"] {
+    accent-color: var(--gold); cursor: pointer; width: 80px;
+  }
+
+  /* ── STATS ── */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; animation: fadeDown 0.6s 0.15s ease both; }
+  .stat-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 10px; text-align: center;
+  }
+  .stat-icon { font-size: 1.3rem; margin-bottom: 4px; }
+  .stat-num { font-family: 'Baloo 2', cursive; font-size: 1.9rem; font-weight: 800; color: var(--text); line-height: 1; }
+  .stat-num.gold { color: var(--gold); }
+  .stat-num.green { color: var(--green); }
+  .stat-label { font-size: 0.72rem; color: var(--text2); font-weight: 700; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+  /* ── GAME BOARD ── */
+  .board-wrap {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px 16px 10px;
+    animation: fadeDown 0.6s 0.2s ease both;
+    position: relative; overflow: hidden;
+  }
+  .board-bg-lines {
+    position: absolute; inset: 0; pointer-events: none;
+    background-image: repeating-linear-gradient(
+      0deg, transparent, transparent 39px,
+      rgba(255,255,255,0.02) 40px
+    );
+  }
+  #game-canvas {
+    width: 100%; height: 200px; position: relative;
+    user-select: none;
+  }
+  .peg-wrapper {
+    position: absolute; top: 0; bottom: 0;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: flex-end; cursor: pointer;
+  }
+  .peg-stick {
+    width: 10px; height: 145px;
+    background: linear-gradient(180deg, #4a6380, #263852);
+    border-radius: 5px 5px 0 0;
+    position: absolute; bottom: 26px;
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.04);
+  }
+  .peg-base-line {
+    width: 100%; height: 3px;
+    background: linear-gradient(90deg, transparent, var(--text3), transparent);
+    position: absolute; bottom: 24px;
+  }
+  .peg-label-wrap {
+    position: absolute; bottom: 3px;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .peg-num {
+    font-size: 0.7rem; font-weight: 800; color: var(--text3);
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .peg-arrow {
+    font-size: 0.9rem; color: var(--accent);
+    animation: pulse 1.5s infinite;
+    display: none;
+  }
+  @keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
+
+  .disc-el {
+    position: absolute;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Baloo 2', cursive;
+    font-size: 0.85rem; font-weight: 800;
+    color: rgba(255,255,255,0.9);
+    cursor: pointer;
+    transition: top 0.28s cubic-bezier(.34,1.56,.64,1),
+                left 0.28s cubic-bezier(.34,1.56,.64,1),
+                box-shadow 0.15s;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  }
+  .disc-el.selected {
+    box-shadow: 0 0 0 3px #fff, 0 0 20px rgba(255,255,255,0.3) !important;
+    z-index: 10;
+    animation: wobble 0.4s ease;
+  }
+  .disc-el:hover { filter: brightness(1.1); }
+  @keyframes wobble {
+    0%{transform:rotate(-3deg)} 25%{transform:rotate(3deg)}
+    50%{transform:rotate(-2deg)} 75%{transform:rotate(2deg)} 100%{transform:rotate(0)}
+  }
+
+  /* ── MESSAGE BAR ── */
+  .msg-bar {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 10px 16px;
+    font-size: 0.9rem; font-weight: 600; color: var(--text2);
+    min-height: 44px; transition: all 0.3s;
+    animation: fadeDown 0.6s 0.25s ease both;
+  }
+  .msg-bar.error { border-color: var(--red); color: #fca5a5; background: rgba(239,68,68,0.07); }
+  .msg-bar.success { border-color: var(--green); color: #86efac; background: rgba(34,197,94,0.07); }
+  .msg-bar.info { border-color: var(--accent); color: #93c5fd; background: rgba(79,144,248,0.07); }
+  .msg-icon { font-size: 1.1rem; flex-shrink: 0; }
+
+  /* ── BOTTOM PANELS ── */
+  .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; animation: fadeDown 0.6s 0.3s ease both; }
+  .panel {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+  }
+  .panel-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    font-size: 0.82rem; font-weight: 800; color: var(--text2);
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .panel-body { padding: 14px 16px; }
+
+  /* Steps log */
+  #step-log {
+    max-height: 180px; overflow-y: auto;
+    scrollbar-width: thin; scrollbar-color: var(--bg3) transparent;
+  }
+  #step-log::-webkit-scrollbar { width: 4px; }
+  #step-log::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 4px; }
+  .log-empty { font-size: 0.82rem; color: var(--text3); text-align: center; padding: 16px 0; }
+  .log-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 0; border-bottom: 1px solid var(--border);
+    font-size: 0.82rem; animation: slideIn 0.25s ease;
+  }
+  .log-row:last-child { border-bottom: none; }
+  @keyframes slideIn { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:none} }
+  .log-step { font-weight: 800; color: var(--text3); min-width: 22px; font-size: 0.75rem; }
+  .log-disc { width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 800; color: white; }
+  .log-desc { color: var(--text2); }
+  .log-highlight { color: var(--text); font-weight: 700; }
+  .current-step { background: rgba(79,144,248,0.08); border-radius: 4px; padding: 5px 6px !important; }
+
+  /* Tutorial */
+  .rules-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .rule-item { display: flex; gap: 10px; align-items: flex-start; font-size: 0.85rem; color: var(--text2); line-height: 1.45; }
+  .rule-icon {
+    width: 26px; height: 26px; border-radius: 6px; flex-shrink: 0;
+    background: rgba(79,144,248,0.12); border: 1px solid rgba(79,144,248,0.2);
+    display: flex; align-items: center; justify-content: center; font-size: 0.8rem;
+  }
+  .rule-item strong { color: var(--text); }
+
+  /* Algorithm panel */
+  .algo-tabs { display: flex; gap: 1px; background: var(--bg3); border-radius: var(--radius-sm); padding: 3px; margin-bottom: 12px; }
+  .algo-tab { flex: 1; text-align: center; padding: 6px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; cursor: pointer; color: var(--text3); transition: all 0.2s; }
+  .algo-tab.active { background: var(--card2); color: var(--text); }
+  .algo-content { display: none; font-size: 0.82rem; color: var(--text2); line-height: 1.6; }
+  .algo-content.active { display: block; }
+  .algo-code {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 10px 12px;
+    font-family: 'Courier New', monospace; font-size: 0.78rem;
+    color: #93c5fd; white-space: pre; overflow-x: auto; margin-top: 8px;
+  }
+  .algo-highlight { color: var(--gold); font-weight: 700; }
+
+  /* VICTORY OVERLAY */
+  #victory {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(6px);
+    align-items: center; justify-content: center; z-index: 100;
+    animation: fadeIn 0.3s ease;
+  }
+  #victory.show { display: flex; }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+  .victory-card {
+    background: var(--card); border: 1px solid rgba(245,200,66,0.3);
+    border-radius: 20px; padding: 2.5rem 2rem; max-width: 380px; width: 90%;
+    text-align: center; position: relative; overflow: hidden;
+    box-shadow: 0 0 60px rgba(245,200,66,0.15);
+    animation: popIn 0.4s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  @keyframes popIn { from{transform:scale(0.7);opacity:0} to{transform:scale(1);opacity:1} }
+  .victory-emoji { font-size: 4rem; margin-bottom: 1rem; display: block; animation: bounce 1s infinite; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+  .victory-title { font-family:'Baloo 2',cursive; font-size:2rem; font-weight:900; background:linear-gradient(135deg,#f5c842,#f97316); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .victory-sub { color: var(--text2); font-size: 0.95rem; margin: 0.5rem 0 1.5rem; }
+  .victory-stats { display: flex; gap: 12px; justify-content: center; margin-bottom: 1.5rem; }
+  .v-stat { background: var(--bg3); border-radius: var(--radius-sm); padding: 10px 18px; }
+  .v-stat-num { font-family:'Baloo 2',cursive; font-size:1.8rem; font-weight:800; }
+  .v-stat-lbl { font-size: 0.72rem; color: var(--text2); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+  .confetti { position: absolute; width: 8px; height: 8px; border-radius: 2px; animation: fall linear infinite; pointer-events: none; }
+  @keyframes fall { 0%{transform:translateY(-10px) rotate(0deg);opacity:1} 100%{transform:translateY(460px) rotate(720deg);opacity:0} }
+
+  /* Animations */
+  @keyframes fadeDown { from{opacity:0;transform:translateY(-12px)} to{opacity:1;transform:none} }
+
+  /* RESPONSIVE */
+  @media (max-width: 640px) {
+    header h1 { font-size: 1.4rem; }
+    .stats { grid-template-columns: repeat(2,1fr); }
+    .panels { grid-template-columns: 1fr; }
+    .controls-bar { gap: 7px; }
+    .btn { padding: 7px 12px; font-size: 0.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🗼</div>
+  <div>
+    <h1>Torre de Hanói</h1>
+    <p>Jogo educativo de lógica e algoritmos</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- CONTROLS -->
+  <div class="controls-bar">
+    <div class="ctrl-group">
+      <label>Discos</label>
+      <select id="disc-select">
+        <option value="3" selected>3 discos</option>
+        <option value="4">4 discos</option>
+        <option value="5">5 discos</option>
+      </select>
+    </div>
+    <button class="btn btn-ghost" onclick="initGame()">↺ Reiniciar</button>
+    <button class="btn btn-primary" id="solve-btn" onclick="autoSolve()">▶ Ver solução</button>
+    <button class="btn btn-ghost" id="stop-btn" onclick="stopSolve()" style="display:none">⏹ Parar</button>
+    <div class="ctrl-group speed-group">
+      <label>Velocidade</label>
+      <input type="range" id="speed" min="1" max="5" value="3" />
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-icon">🎮</div>
+      <div class="stat-num" id="move-count">0</div>
+      <div class="stat-label">Seus movimentos</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">✨</div>
+      <div class="stat-num gold" id="min-moves">7</div>
+      <div class="stat-label">Mínimo possível</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🏆</div>
+      <div class="stat-num green" id="peg3-count">0</div>
+      <div class="stat-label">Discos no pino 3</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📐</div>
+      <div class="stat-num" id="formula-val">2³−1</div>
+      <div class="stat-label">Fórmula: 2ⁿ−1</div>
+    </div>
+  </div>
+
+  <!-- GAME BOARD -->
+  <div class="board-wrap">
+    <div class="board-bg-lines"></div>
+    <div id="game-canvas"></div>
+  </div>
+
+  <!-- MESSAGE BAR -->
+  <div class="msg-bar" id="msg-bar">
+    <span class="msg-icon">💡</span>
+    <span id="msg-text">Clique em um disco para selecioná-lo, depois clique no pino de destino!</span>
+  </div>
+
+  <!-- BOTTOM PANELS -->
+  <div class="panels">
+
+    <!-- LOG PANEL -->
+    <div class="panel">
+      <div class="panel-header">
+        📋 <span>Registro de Passos</span>
+        <button class="btn btn-ghost" onclick="clearLog()" style="margin-left:auto;padding:3px 10px;font-size:0.75rem;">Limpar</button>
+      </div>
+      <div class="panel-body">
+        <div id="step-log"><div class="log-empty">Os passos aparecerão aqui durante o jogo ou na solução automática.</div></div>
+      </div>
+    </div>
+
+    <!-- INFO PANEL -->
+    <div class="panel">
+      <div class="panel-header">📚 <span>Como Funciona</span></div>
+      <div class="panel-body">
+        <div class="algo-tabs">
+          <div class="algo-tab active" onclick="showTab('rules')">Regras</div>
+          <div class="algo-tab" onclick="showTab('algo')">Algoritmo</div>
+          <div class="algo-tab" onclick="showTab('math')">Matemática</div>
+        </div>
+
+        <div class="algo-content active" id="tab-rules">
+          <ul class="rules-list">
+            <li class="rule-item"><div class="rule-icon">1</div><div>Mova <strong>todos os discos</strong> do Pino 1 para o Pino 3.</div></li>
+            <li class="rule-item"><div class="rule-icon">2</div><div>Só pode mover <strong>um disco por vez</strong> — sempre o do topo.</div></li>
+            <li class="rule-item"><div class="rule-icon">3</div><div>Nunca coloque um disco <strong>maior sobre um menor</strong>.</div></li>
+            <li class="rule-item"><div class="rule-icon">💡</div><div>Use o <strong>pino do meio</strong> como apoio para organizar a ordem.</div></li>
+          </ul>
+        </div>
+
+        <div class="algo-content" id="tab-algo">
+          <p>O segredo é <strong style="color:var(--text)">dividir o problema</strong> em partes menores — isso se chama <em style="color:var(--accent)">recursão</em>:</p>
+          <div class="algo-code">mover(n, origem, destino, aux):
+  <span class="algo-highlight">se</span> n == 0: return
+  mover(n-1, origem, aux, destino)
+  mover disco n → destino
+  mover(n-1, aux, destino, origem)</div>
+          <p style="margin-top:10px;font-size:0.8rem;color:var(--text3)">Leia: "Para mover n discos, primeiro mova n-1 discos para o auxiliar, mova o maior, depois mova os n-1 de volta."</p>
+        </div>
+
+        <div class="algo-content" id="tab-math">
+          <p>O número mínimo de movimentos segue a fórmula:</p>
+          <div style="text-align:center;padding:14px;background:var(--bg3);border-radius:var(--radius-sm);margin:10px 0;font-family:'Baloo 2',cursive;font-size:1.4rem;color:var(--gold);font-weight:700;">M = 2ⁿ − 1</div>
+          <div style="font-size:0.82rem;color:var(--text2);display:flex;flex-direction:column;gap:4px;">
+            <span>• 3 discos → 2³ − 1 = <strong style="color:var(--text)">7 movimentos</strong></span>
+            <span>• 4 discos → 2⁴ − 1 = <strong style="color:var(--text)">15 movimentos</strong></span>
+            <span>• 5 discos → 2⁵ − 1 = <strong style="color:var(--text)">31 movimentos</strong></span>
+            <span style="margin-top:4px;color:var(--text3)">Cada disco extra <em>dobra</em> o trabalho!</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- VICTORY OVERLAY -->
+<div id="victory">
+  <div class="victory-card" id="victory-card">
+    <span class="victory-emoji">🏆</span>
+    <div class="victory-title">Parabéns!</div>
+    <div class="victory-sub" id="victory-msg">Você completou o desafio!</div>
+    <div class="victory-stats">
+      <div class="v-stat"><div class="v-stat-num" id="v-moves" style="color:var(--accent)">—</div><div class="v-stat-lbl">Movimentos</div></div>
+      <div class="v-stat"><div class="v-stat-num" id="v-min" style="color:var(--gold)">—</div><div class="v-stat-lbl">Mínimo</div></div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="closeVictory()">Jogar de novo</button>
+      <button class="btn btn-gold" onclick="nextLevel()">Próximo nível ▶</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let pegs = [[], [], []];
+let selected = -1;
+let moves = 0;
+let solving = false;
+let solveTimer = null;
+let stepCount = 0;
+let totalSteps = 0;
+
+const COLORS = ['#ef4444','#f97316','#eab308','#22c55e','#3b82f6'];
+
+// ── INIT ──
+function initGame() {
+  if (solveTimer) clearTimeout(solveTimer);
+  solving = false; selected = -1; moves = 0; stepCount = 0;
+  const n = +document.getElementById('disc-select').value;
+  pegs = [[], [], []];
+  for (let i = n; i >= 1; i--) pegs[0].push(i);
+  updateStats();
+  clearLog();
+  setMsg('💡', 'Clique em um disco para selecioná-lo, depois clique no pino de destino!', '');
+  document.getElementById('solve-btn').style.display = '';
+  document.getElementById('stop-btn').style.display = 'none';
+  render();
+}
+
+// ── RENDER ──
+function render() {
+  const canvas = document.getElementById('game-canvas');
+  canvas.innerHTML = '';
+  const W = canvas.offsetWidth || 800;
+  const H = 200;
+  const n = +document.getElementById('disc-select').value;
+  const pegW = W / 3;
+  const baseY = H - 26;
+  const discH = 22;
+  const gap = 4;
+  const maxW = pegW * 0.80;
+  const minW = 32;
+  const pegNames = ['Pino 1', 'Pino 2', 'Pino 3'];
+
+  for (let p = 0; p < 3; p++) {
+    const cx = pegW * p + pegW / 2;
+
+    // Peg zone (clickable)
+    const zone = document.createElement('div');
+    zone.className = 'peg-wrapper';
+    zone.style.cssText = `left:${pegW * p}px;width:${pegW}px;`;
+    zone.addEventListener('click', () => onPeg(p));
+
+    // Stick
+    const stick = document.createElement('div');
+    stick.className = 'peg-stick';
+    stick.style.left = `${pegW / 2 - 5}px`;
+    zone.appendChild(stick);
+
+    // Base line
+    const baseLine = document.createElement('div');
+    baseLine.className = 'peg-base-line';
+    zone.appendChild(baseLine);
+
+    // Label
+    const lblWrap = document.createElement('div');
+    lblWrap.className = 'peg-label-wrap';
+    lblWrap.style.width = '100%';
+    lblWrap.style.textAlign = 'center';
+
+    const lbl = document.createElement('div');
+    lbl.className = 'peg-num';
+    lbl.textContent = pegNames[p];
+    lblWrap.appendChild(lbl);
+
+    // Arrow (when selected and this is a valid target)
+    const arrow = document.createElement('div');
+    arrow.className = 'peg-arrow';
+    arrow.id = `arrow-${p}`;
+    arrow.textContent = '↑';
+    lblWrap.appendChild(arrow);
+
+    zone.appendChild(lblWrap);
+    canvas.appendChild(zone);
+
+    // Discs
+    pegs[p].forEach((size, idx) => {
+      const w = n === 1 ? maxW : minW + (size - 1) * (maxW - minW) / (n - 1);
+      const x = cx - w / 2;
+      const y = baseY - (idx + 1) * (discH + gap);
+      const isTop = idx === pegs[p].length - 1;
+      const isSel = selected === p && isTop;
+
+      const d = document.createElement('div');
+      d.className = 'disc-el' + (isSel ? ' selected' : '');
+      d.style.cssText = `
+        left:${x}px; top:${y}px;
+        width:${w}px; height:${discH}px;
+        background:${COLORS[size - 1]};
+        box-shadow: 0 3px 10px ${COLORS[size-1]}55, inset 0 1px 0 rgba(255,255,255,0.2);
+        z-index:${idx + 1};
+      `;
+      d.textContent = size;
+      d.addEventListener('click', (e) => { e.stopPropagation(); onDisc(p, idx); });
+      canvas.appendChild(d);
+    });
+  }
+
+  // Show arrows for valid destinations when a disc is selected
+  if (selected !== -1) {
+    for (let p = 0; p < 3; p++) {
+      if (p === selected) continue;
+      const top = pegs[p].length ? pegs[p][pegs[p].length - 1] : Infinity;
+      const selDisc = pegs[selected][pegs[selected].length - 1];
+      const arrow = document.getElementById(`arrow-${p}`);
+      if (arrow && selDisc < top) arrow.style.display = 'block';
+    }
+  }
+
+  updateStats();
+}
+
+// ── INTERACTION ──
+function onDisc(p, idx) {
+  if (solving) return;
+  if (idx !== pegs[p].length - 1) {
+    setMsg('🚫', 'Só pode mover o disco do topo do pino!', 'error');
+    return;
+  }
+  if (selected === p) {
+    selected = -1;
+    setMsg('💡', 'Seleção cancelada. Clique em outro disco.', '');
+  } else {
+    selected = p;
+    setMsg('✅', `Disco ${pegs[p][idx]} selecionado! Clique no pino onde deseja colocar.`, 'info');
+  }
+  render();
+}
+
+function onPeg(p) {
+  if (solving) return;
+  if (selected === -1) {
+    if (pegs[p].length > 0) {
+      selected = p;
+      const d = pegs[p][pegs[p].length - 1];
+      setMsg('✅', `Disco ${d} selecionado! Clique no pino de destino.`, 'info');
+      render();
+    } else {
+      setMsg('💡', 'Pino vazio! Selecione primeiro um disco em outro pino.', '');
+    }
+    return;
+  }
+  if (selected === p) {
+    selected = -1;
+    setMsg('💡', 'Seleção cancelada.', '');
+    render();
+    return;
+  }
+  doMove(selected, p, true);
+}
+
+function doMove(from, to, human) {
+  if (!pegs[from].length) { selected = -1; render(); return; }
+  const disc = pegs[from][pegs[from].length - 1];
+  const topTo = pegs[to].length ? pegs[to][pegs[to].length - 1] : Infinity;
+
+  if (disc > topTo) {
+    setMsg('🚫', `Proibido! O disco ${disc} é maior que o disco ${topTo} no Pino ${to + 1}. Nunca coloque um disco maior sobre um menor!`, 'error');
+    selected = -1; render(); return;
+  }
+
+  pegs[from].pop();
+  pegs[to].push(disc);
+
+  if (human) {
+    moves++;
+    logStep(stepCount + 1, disc, from, to, true);
+  } else {
+    logStep(stepCount + 1, disc, from, to, false);
+  }
+  stepCount++;
+  selected = -1;
+  render();
+  checkWin(human);
+}
+
+function checkWin(human) {
+  const n = +document.getElementById('disc-select').value;
+  if (pegs[2].length === n) {
+    const min = Math.pow(2, n) - 1;
+    setTimeout(() => showVictory(moves || stepCount, min, solving), 400);
+  }
+}
+
+// ── AUTO SOLVE ──
+function buildSolution(n, from, to, aux, steps) {
+  if (n === 0) return;
+  buildSolution(n - 1, from, aux, to, steps);
+  steps.push([from, to]);
+  buildSolution(n - 1, aux, to, from, steps);
+}
+
+function autoSolve() {
+  initGame();
+  solving = true;
+  const n = +document.getElementById('disc-select').value;
+  const steps = [];
+  buildSolution(n, 0, 2, 1, steps);
+  totalSteps = steps.length;
+
+  document.getElementById('solve-btn').style.display = 'none';
+  document.getElementById('stop-btn').style.display = '';
+  setMsg('▶', `Exibindo solução automática: ${steps.length} passos. Observe como o algoritmo funciona!`, 'info');
+
+  let i = 0;
+  const speedVal = () => [700, 500, 350, 220, 120][+document.getElementById('speed').value - 1];
+
+  function step() {
+    if (!solving || i >= steps.length) { solving = false; return; }
+    const [from, to] = steps[i];
+    doMove(from, to, false);
+    i++;
+    if (i < steps.length) solveTimer = setTimeout(step, speedVal());
+    else {
+      solving = false;
+      document.getElementById('solve-btn').style.display = '';
+      document.getElementById('stop-btn').style.display = 'none';
+    }
+  }
+  step();
+}
+
+function stopSolve() {
+  if (solveTimer) clearTimeout(solveTimer);
+  solving = false;
+  document.getElementById('solve-btn').style.display = '';
+  document.getElementById('stop-btn').style.display = 'none';
+  setMsg('⏹', 'Solução pausada. Você pode continuar jogando ou reiniciar.', '');
+}
+
+// ── LOG ──
+function logStep(num, disc, from, to, highlight) {
+  const log = document.getElementById('step-log');
+  const empty = log.querySelector('.log-empty');
+  if (empty) empty.remove();
+
+  // Remove highlight from previous current
+  log.querySelectorAll('.current-step').forEach(el => el.classList.remove('current-step'));
+
+  const row = document.createElement('div');
+  row.className = 'log-row' + (highlight ? ' current-step' : '');
+  row.innerHTML = `
+    <span class="log-step">${num}</span>
+    <span class="log-disc" style="background:${COLORS[disc - 1]}">${disc}</span>
+    <span class="log-desc">Disco <span class="log-highlight">${disc}</span> → Pino <span class="log-highlight">${from + 1}</span> para Pino <span class="log-highlight">${to + 1}</span></span>
+  `;
+  log.appendChild(row);
+  log.scrollTop = log.scrollHeight;
+}
+
+function clearLog() {
+  document.getElementById('step-log').innerHTML = '<div class="log-empty">Os passos aparecerão aqui durante o jogo ou na solução automática.</div>';
+  stepCount = 0;
+}
+
+// ── STATS ──
+function updateStats() {
+  const n = +document.getElementById('disc-select').value;
+  document.getElementById('move-count').textContent = moves;
+  document.getElementById('min-moves').textContent = Math.pow(2, n) - 1;
+  document.getElementById('peg3-count').textContent = pegs[2].length;
+  const sup = n === 3 ? '³' : n === 4 ? '⁴' : '⁵';
+  document.getElementById('formula-val').textContent = `2${sup}−1`;
+}
+
+// ── MESSAGES ──
+function setMsg(icon, text, type) {
+  const bar = document.getElementById('msg-bar');
+  bar.className = 'msg-bar' + (type ? ' ' + type : '');
+  bar.querySelector('.msg-icon').textContent = icon;
+  document.getElementById('msg-text').textContent = text;
+}
+
+// ── TABS ──
+function showTab(id) {
+  document.querySelectorAll('.algo-tab').forEach((t, i) => {
+    const ids = ['rules','algo','math'];
+    t.classList.toggle('active', ids[i] === id);
+  });
+  document.querySelectorAll('.algo-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+}
+
+// ── VICTORY ──
+function showVictory(mv, min, auto) {
+  document.getElementById('v-moves').textContent = mv;
+  document.getElementById('v-min').textContent = min;
+  const n = +document.getElementById('disc-select').value;
+
+  let msg;
+  if (auto) msg = `A solução automática completou o desafio em ${mv} movimentos — o mínimo possível com ${n} discos!`;
+  else if (mv === min) msg = `Incrível! Você resolveu com o número mínimo de movimentos! Você é um gênio da lógica! 🧠`;
+  else msg = `Você resolveu em ${mv} movimentos. O mínimo é ${min}. Tente de novo para bater o recorde!`;
+  document.getElementById('victory-msg').textContent = msg;
+
+  spawnConfetti();
+  document.getElementById('victory').classList.add('show');
+}
+
+function closeVictory() {
+  document.getElementById('victory').classList.remove('show');
+  initGame();
+}
+
+function nextLevel() {
+  document.getElementById('victory').classList.remove('show');
+  const sel = document.getElementById('disc-select');
+  const cur = +sel.value;
+  if (cur < 5) sel.value = cur + 1;
+  initGame();
+}
+
+// ── CONFETTI ──
+function spawnConfetti() {
+  const card = document.getElementById('victory-card');
+  card.querySelectorAll('.confetti').forEach(el => el.remove());
+  const cols = ['#ef4444','#f97316','#eab308','#22c55e','#3b82f6','#a855f7'];
+  for (let i = 0; i < 18; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.cssText = `
+      background:${cols[i % cols.length]};
+      left:${Math.random()*100}%;
+      top:-10px;
+      animation-delay:${Math.random()*2}s;
+      animation-duration:${2 + Math.random() * 2}s;
+      transform:rotate(${Math.random()*360}deg);
+    `;
+    card.appendChild(c);
+  }
+}
+
+// ── DISC SELECT LISTENER ──
+document.getElementById('disc-select').addEventListener('change', initGame);
+
+// ── START ──
+initGame();
+window.addEventListener('resize', render);
+</script>
+</body>
+</html>
